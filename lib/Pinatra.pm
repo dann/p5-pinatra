@@ -138,6 +138,7 @@ Pinatra - Minimalistic sugar for your Plack
 
 =head1 SYNOPSIS
 
+  # app.psgi
   use Pinatra;
   my $app = pina {
     get '/api' => sub {
@@ -150,6 +151,7 @@ Pinatra - Minimalistic sugar for your Plack
       $res;
     }
   };
+
 =head1 DESCRIPTION
 
 Pinatra is Minimalistic sugar for your Plack
