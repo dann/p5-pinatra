@@ -1,4 +1,5 @@
 use Pinatra;
+
 my $app = pina {
     get '/api' => sub {
         json { foo => 'bar' };

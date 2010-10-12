@@ -20,16 +20,32 @@ sub import {
     *{"${caller}::pina"} = \&pina;
 
     # HTTP methods
-    *{"${caller}::get"}  = sub { goto &do_get };
-    *{"${caller}::post"} = sub { goto &do_post };
+    my @http_methods = qw/get post/;
+    for my $http_method (@http_methods) {
+        *{"${caller}\::$http_method"} = sub { goto \&$http_method };
+    }
 
-    # req-res
-    *{"${caller}::req"} = \&req;
+    # render
+    my @render_methods = qw/html text json/;
+    for my $render_method (@render_methods) {
+        *{"${caller}\::$render_method"} = sub { goto \&$render_method };
+    }
+
+    # resoponse shortcut
     *{"${caller}::res"} = \&res;
+}
 
-    *{"${caller}::html"} = \&html;
-    *{"${caller}::text"} = \&text;
-    *{"${caller}::json"} = \&json;
+sub _stub {
+    my $name = shift;
+    return sub { croak "Can't call $name() outside pina block" };
+}
+
+{
+    my @Declarations = qw(get post);
+    for my $keyword (@Declarations) {
+        no strict 'refs';
+        *$keyword = _stub $keyword;
+    }
 }
 
 sub pina (&) {
@@ -40,7 +56,7 @@ sub pina (&) {
         local *get  = sub { do_get(@_) };
         local *post = sub { do_post(@_) };
         $block->();
-        return sub { _find_and_run(shift) }
+        return sub { dispatch(shift) }
     }
 }
 
@@ -51,16 +67,16 @@ sub route {
 }
 
 sub do_get {
-    my ($pattern, $code) = @_;
+    my ( $pattern, $code ) = @_;
     route( $pattern, $code, 'GET' );
 }
 
 sub do_post {
-    my ($pattern, $code) = @_;
+    my ( $pattern, $code ) = @_;
     route( $pattern, $code, 'POST' );
 }
 
-# response
+# render
 sub html {
     return [ 200, [ 'Content-Type' => 'text/html; charset=UTF-8' ], [shift] ];
 }
@@ -78,19 +94,14 @@ sub json {
     ];
 }
 
-# request-response
+# response
 sub res {
     my $req = shift;
     $req->new_response(200);
 }
 
 # dispatch
-sub _find_and_run {
-    my $env = shift;
-    _dispatch($env);
-}
-
-sub _dispatch {
+sub dispatch {
     my $env = shift;
     if ( my $match = $_ROUTER->match($env) ) {
         my $code = $match->{action};
@@ -101,7 +112,6 @@ sub _dispatch {
             }
             catch {
                 my $e = shift;
-                warn $e;
                 return [ 500, [], ['Internal server error'] ];
             };
             return try { $res->finalize } || $res;
@@ -117,6 +127,7 @@ sub _dispatch {
 }
 
 1;
+
 __END__
 
 =encoding utf-8
