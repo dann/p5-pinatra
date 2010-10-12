@@ -41,8 +41,8 @@ sub _stub {
 }
 
 {
-    my @Declarations = qw(get post put del);
-    for my $keyword (@Declarations) {
+    my @declarations = qw(get post put del);
+    for my $keyword (@declarations) {
         no strict 'refs';
         *$keyword = _stub $keyword;
     }
