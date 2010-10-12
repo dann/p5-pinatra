@@ -141,6 +141,10 @@ sub not_found {
     [ 404, [], ['Not Found'] ];
 }
 
+sub internal_server_error {
+    return [ 500, [], ['Internal server error'] ];
+}
+
 sub process_request {
     my ( $req, $match ) = @_;
     my $code = $match->{action};
@@ -150,12 +154,12 @@ sub process_request {
         }
         catch {
             my $e = shift;
-            return [ 500, [], ['Internal server error'] ];
+            return internal_server_error();
         };
         return try { $res->finalize } || $res;
     }
     else {
-        return [ 500, [], ['Internal server error'] ];
+        return internal_server_error();
     }
 }
 
