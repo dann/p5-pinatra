@@ -129,26 +129,34 @@ sub res {
 sub dispatch {
     my $env = shift;
     if ( my $match = $_ROUTER->match($env) ) {
-        my $code = $match->{action};
-        if ( ref $code eq 'CODE' ) {
-            my $req = Plack::Request->new($env);
-            my $res = try {
-                &$code( $req, $match );
-            }
-            catch {
-                my $e = shift;
-                return [ 500, [], ['Internal server error'] ];
-            };
-            return try { $res->finalize } || $res;
-        }
-        else {
-            return [ 500, [], ['Internal server error'] ];
-        }
+        my $req = Plack::Request->new($env);
+        return process_request( $req, $match );
     }
     else {
-        [ 404, [], ['Not Found'] ];
+        return not_found();
     }
+}
 
+sub not_found {
+    [ 404, [], ['Not Found'] ];
+}
+
+sub process_request {
+    my ( $req, $match ) = @_;
+    my $code = $match->{action};
+    if ( ref $code eq 'CODE' ) {
+        my $res = try {
+            &$code( $req, $match );
+        }
+        catch {
+            my $e = shift;
+            return [ 500, [], ['Internal server error'] ];
+        };
+        return try { $res->finalize } || $res;
+    }
+    else {
+        return [ 500, [], ['Internal server error'] ];
+    }
 }
 
 1;
