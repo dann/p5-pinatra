@@ -20,7 +20,7 @@ sub import {
     *{"${caller}::pina"} = \&pina;
 
     # HTTP methods
-    my @http_methods = qw/get post/;
+    my @http_methods = qw/get post put del/;
     for my $http_method (@http_methods) {
         *{"${caller}\::$http_method"} = sub { goto \&$http_method };
     }
@@ -41,7 +41,7 @@ sub _stub {
 }
 
 {
-    my @Declarations = qw(get post);
+    my @Declarations = qw(get post put del);
     for my $keyword (@Declarations) {
         no strict 'refs';
         *$keyword = _stub $keyword;
@@ -55,7 +55,10 @@ sub pina (&) {
         no warnings 'redefine';
         local *get  = sub { do_get(@_) };
         local *post = sub { do_post(@_) };
+        local *put  = sub { do_put(@_) };
+        local *del  = sub { do_del(@_) };
         $block->();
+
         return sub { dispatch(shift) }
     }
 }
@@ -74,6 +77,16 @@ sub do_get {
 sub do_post {
     my ( $pattern, $code ) = @_;
     route( $pattern, $code, 'POST' );
+}
+
+sub do_put {
+    my ( $pattern, $code ) = @_;
+    route( $pattern, $code, 'PUT' );
+}
+
+sub do_del {
+    my ( $pattern, $code ) = @_;
+    route( $pattern, $code, 'DELETE' );
 }
 
 # render
