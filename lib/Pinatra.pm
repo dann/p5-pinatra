@@ -205,7 +205,7 @@ dann E<lt>techmemo@gmail.comE<gt>
 
 =head1 SEE ALSO
 
-L<PSGI>, L<Plack>, L<Dancer>, L<Flea>
+L<PSGI>, L<Plack>, L<Dancer>, L<Flea>, L<Router::Simple>
 
 =head1 LICENSE
 
