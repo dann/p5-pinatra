@@ -26,7 +26,7 @@ sub import {
     }
 
     # render
-    my @render_methods = qw/html text json/;
+    my @render_methods = qw/html text json file/;
     for my $render_method (@render_methods) {
         *{"${caller}\::$render_method"} = sub { goto \&$render_method };
     }
@@ -104,6 +104,18 @@ sub json {
         200,
         [ 'Content-Type' => 'application/json; charset=UTF-8' ],
         [ JSON::encode_json(shift) ]
+    ];
+}
+
+sub file {
+    open my $fh, '<', shift;
+    handle( $fh, @_ );
+}
+
+sub handle {
+    my ( $fh, $type ) = @_;
+    return [
+        200, [ 'Content-Type' => $type || 'text/html; charset=UTF-8' ], $fh
     ];
 }
 
